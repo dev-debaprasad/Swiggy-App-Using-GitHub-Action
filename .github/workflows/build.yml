@@ -42,6 +42,6 @@ jobs:
       - name: ECR PULL
         run: |
          aws eks update-kubeconfig --region us-east-1 --name EKS_CLOUD
-         kubectl apply -f deployment-using-github-actions/deployment-service.yaml
+         kubectl apply -f deployment-using-github-actions/deployment-service.yml
          kubectl rollout status deployment/swiggy
  
