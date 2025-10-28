@@ -39,3 +39,9 @@ jobs:
           docker push 171257943898.dkr.ecr.us-east-1.amazonaws.com/sonar-ecr:latest
         env:
           DOCKER_CLI_ACI: 1
+      - name: ECR PULL
+        run: |
+         aws eks update-kubeconfig --region us-east-1 --name EKS_CLOUD
+         kubectl apply -f deployment-using-github-actions/ deployment-service.yaml
+         kubectl rollout status deployment/swiggy
+ 
