@@ -24,3 +24,11 @@ jobs:
       #   timeout-minutes: 5
       #   env:
       #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Docker build and push to ECR
+        run: 
+           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 171257943898.dkr.ecr.us-east-1.amazonaws.com
+           docker build -t sonar-ecr .
+           docker tag sonar-ecr:latest 171257943898.dkr.ecr.us-east-1.amazonaws.com/sonar-ecr:latest
+           docker push 355628581932.dkr.ecr.us-east-1.amazonaws.com/swiggy-repo:latest
+        env:
+         DOCKER_CLI_ACI: 1
