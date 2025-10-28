@@ -31,6 +31,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+
       - name: Docker build and push to ECR
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 171257943898.dkr.ecr.us-east-1.amazonaws.com
@@ -39,8 +40,25 @@ jobs:
           docker push 171257943898.dkr.ecr.us-east-1.amazonaws.com/sonar-ecr:latest
         env:
           DOCKER_CLI_ACI: 1
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: [self-hosted]
+    steps:
+      - name: Docker pull image
+        run: docker pull 171257943898.dkr.ecr.us-east-1.amazonaws.com/sonar-ecr:latest
+
+      - name: Image scan
+        run: trivy image 171257943898.dkr.ecr.us-east-1.amazonaws.com/sonar-ecr:latest > trivyimagedeploy.txt
+
+      - name: Stop and remove existing container
+        run: |
+          docker stop swiggy-clone || true
+          docker rm swiggy-clone || true
+
+      - name: Deploy to container
+        run: docker run -d --name swiggy-clone -p 3000:3000 171257943898.dkr.ecr.us-east-1.amazonaws.com/sonar-ecr:latest
+
       - name: Update kubeconfig
-        run: aws eks --region us-east-1 update-kubeconfig --name EKS_CLOUD
-      - name: Deploy to kubernetes
-        run: kubectl apply -f deployment-using-github-actions/deployment-service.yml
- 
+        run: aws eks update-kubeconfig --region us-east-1 --name EKS_CLOUD
