@@ -5,7 +5,6 @@ on:
     branches:
       - main
 
-
 jobs:
   build:
     name: Build
@@ -13,29 +12,30 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
       - uses: sonarsource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      # If you wish to fail your job when the Quality Gate is red, uncomment the
-      # following lines. This would typically be used to fail a deployment.
+
+      # Uncomment to fail the job if Quality Gate fails
       # - uses: sonarsource/sonarqube-quality-gate-action@master
       #   timeout-minutes: 5
       #   env:
       #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-         aws-region: us-east-1
-      
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
       - name: Docker build and push to ECR
-        run: 
-           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 171257943898.dkr.ecr.us-east-1.amazonaws.com
-           docker build -t sonar-ecr -f deployment-using-github-actions/Dockerfile deployment-using-github-actions/
-           docker tag sonar-ecr:latest 171257943898.dkr.ecr.us-east-1.amazonaws.com/sonar-ecr:latest
-           docker push 355628581932.dkr.ecr.us-east-1.amazonaws.com/swiggy-repo:latest
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 171257943898.dkr.ecr.us-east-1.amazonaws.com
+          docker build -t sonar-ecr -f deployment-using-github-actions/Dockerfile deployment-using-github-actions/
+          docker tag sonar-ecr:latest 171257943898.dkr.ecr.us-east-1.amazonaws.com/sonar-ecr:latest
+          docker push 171257943898.dkr.ecr.us-east-1.amazonaws.com/sonar-ecr:latest
         env:
-         DOCKER_CLI_ACI: 1
+          DOCKER_CLI_ACI: 1
